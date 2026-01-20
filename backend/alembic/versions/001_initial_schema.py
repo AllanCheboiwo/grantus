@@ -9,6 +9,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy import text
 
 revision: str = '001'
 down_revision: Union[str, None] = None
@@ -16,35 +17,31 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def create_enum_if_not_exists(name: str, values: list):
+    """Helper to create enum only if it doesn't exist"""
+    conn = op.get_bind()
+    result = conn.execute(text(f"SELECT 1 FROM pg_type WHERE typname = '{name}'"))
+    if not result.fetchone():
+        enum = postgresql.ENUM(*values, name=name)
+        enum.create(conn)
+
+
 def upgrade() -> None:
-    # Create enums
-    user_role = postgresql.ENUM('admin', 'staff', 'client', name='userrole', create_type=False)
-    user_role.create(op.get_bind(), checkfirst=True)
-    
-    grant_status = postgresql.ENUM('open', 'closed', 'unknown', name='grantstatus', create_type=False)
-    grant_status.create(op.get_bind(), checkfirst=True)
-    
-    deadline_type = postgresql.ENUM('fixed', 'rolling', 'multiple', name='deadlinetype', create_type=False)
-    deadline_type.create(op.get_bind(), checkfirst=True)
-    
-    match_status = postgresql.ENUM('new', 'qualified', 'rejected', 'converted', name='matchstatus', create_type=False)
-    match_status.create(op.get_bind(), checkfirst=True)
-    
-    application_stage = postgresql.ENUM('draft', 'in_progress', 'submitted', 'awarded', 'declined', 'reporting', 'closed', name='applicationstage', create_type=False)
-    application_stage.create(op.get_bind(), checkfirst=True)
-    
-    event_type = postgresql.ENUM('status_change', 'note', 'doc_request', 'submission', 'decision', name='eventtype', create_type=False)
-    event_type.create(op.get_bind(), checkfirst=True)
-    
-    message_channel = postgresql.ENUM('email', 'portal', name='messagechannel', create_type=False)
-    message_channel.create(op.get_bind(), checkfirst=True)
+    # Create enums (only if they don't exist)
+    create_enum_if_not_exists('userrole', ['admin', 'staff', 'client'])
+    create_enum_if_not_exists('grantstatus', ['open', 'closed', 'unknown'])
+    create_enum_if_not_exists('deadlinetype', ['fixed', 'rolling', 'multiple'])
+    create_enum_if_not_exists('matchstatus', ['new', 'qualified', 'rejected', 'converted'])
+    create_enum_if_not_exists('applicationstage', ['draft', 'in_progress', 'submitted', 'awarded', 'declined', 'reporting', 'closed'])
+    create_enum_if_not_exists('eventtype', ['status_change', 'note', 'doc_request', 'submission', 'decision'])
+    create_enum_if_not_exists('messagechannel', ['email', 'portal'])
 
     # Users table
     op.create_table('users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('email', sa.String(), nullable=False),
         sa.Column('name', sa.String(), nullable=True),
-        sa.Column('role', sa.Enum('admin', 'staff', 'client', name='userrole'), nullable=False),
+        sa.Column('role', postgresql.ENUM('admin', 'staff', 'client', name='userrole', create_type=False), nullable=False),
         sa.Column('password_hash', sa.String(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True, default=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -74,7 +71,7 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('code', sa.String(2), nullable=False),
         sa.Column('name', sa.String(), nullable=False),
-        sa.Column('country_code', sa.String(2), nullable=False, default='CA'),
+        sa.Column('country_code', sa.String(2), nullable=False, server_default='CA'),
         sa.Column('is_active', sa.Boolean(), nullable=True, default=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code')
@@ -117,14 +114,14 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('source_url', sa.String(), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('status', sa.Enum('open', 'closed', 'unknown', name='grantstatus'), nullable=False),
-        sa.Column('deadline_type', sa.Enum('fixed', 'rolling', 'multiple', name='deadlinetype'), nullable=False),
+        sa.Column('status', postgresql.ENUM('open', 'closed', 'unknown', name='grantstatus', create_type=False), nullable=False),
+        sa.Column('deadline_type', postgresql.ENUM('fixed', 'rolling', 'multiple', name='deadlinetype', create_type=False), nullable=False),
         sa.Column('deadline_at', sa.Date(), nullable=True),
         sa.Column('next_deadline_at', sa.Date(), nullable=True),
         sa.Column('last_verified_at', sa.DateTime(), nullable=True),
         sa.Column('amount_min', sa.Numeric(12, 2), nullable=True),
         sa.Column('amount_max', sa.Numeric(12, 2), nullable=True),
-        sa.Column('currency', sa.String(3), nullable=False, default='CAD'),
+        sa.Column('currency', sa.String(3), nullable=False, server_default='CAD'),
         sa.Column('created_by_user_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -205,11 +202,11 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('grant_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('fit_score', sa.Integer(), nullable=False, default=0),
+        sa.Column('fit_score', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('fit_level', sa.String(), nullable=True),
         sa.Column('reasons', postgresql.JSONB(), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('status', sa.Enum('new', 'qualified', 'rejected', 'converted', name='matchstatus'), nullable=False),
+        sa.Column('status', postgresql.ENUM('new', 'qualified', 'rejected', 'converted', name='matchstatus', create_type=False), nullable=False),
         sa.Column('owner_user_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -229,7 +226,7 @@ def upgrade() -> None:
         sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('grant_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('match_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('stage', sa.Enum('draft', 'in_progress', 'submitted', 'awarded', 'declined', 'reporting', 'closed', name='applicationstage'), nullable=False),
+        sa.Column('stage', postgresql.ENUM('draft', 'in_progress', 'submitted', 'awarded', 'declined', 'reporting', 'closed', name='applicationstage', create_type=False), nullable=False),
         sa.Column('internal_deadline_at', sa.Date(), nullable=True),
         sa.Column('submitted_at', sa.DateTime(), nullable=True),
         sa.Column('decision_at', sa.DateTime(), nullable=True),
@@ -254,7 +251,7 @@ def upgrade() -> None:
     op.create_table('application_events',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('application_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('event_type', sa.Enum('status_change', 'note', 'doc_request', 'submission', 'decision', name='eventtype'), nullable=False),
+        sa.Column('event_type', postgresql.ENUM('status_change', 'note', 'doc_request', 'submission', 'decision', name='eventtype', create_type=False), nullable=False),
         sa.Column('from_stage', sa.String(), nullable=True),
         sa.Column('to_stage', sa.String(), nullable=True),
         sa.Column('note', sa.Text(), nullable=True),
@@ -271,7 +268,7 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('application_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('channel', sa.Enum('email', 'portal', name='messagechannel'), nullable=False),
+        sa.Column('channel', postgresql.ENUM('email', 'portal', name='messagechannel', create_type=False), nullable=False),
         sa.Column('subject', sa.String(), nullable=True),
         sa.Column('body', sa.Text(), nullable=True),
         sa.Column('sent_to', sa.String(), nullable=True),
