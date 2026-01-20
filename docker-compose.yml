@@ -25,6 +25,7 @@ services:
     container_name: grantus_backend
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-grantus}:${POSTGRES_PASSWORD:-grantus_secret}@db:5432/${POSTGRES_DB:-grantus}
+      POSTGRES_USER: ${POSTGRES_USER:-grantus}
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     ports:
@@ -34,7 +35,6 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:
