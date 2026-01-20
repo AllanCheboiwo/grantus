@@ -1,0 +1,44 @@
+from pydantic import BaseModel
+from typing import Optional, List
+from uuid import UUID
+from datetime import datetime
+from app.schemas.lookup import CauseResponse, ApplicantTypeResponse, ProvinceResponse, EligibilityFlagResponse
+
+
+class ClientBase(BaseModel):
+    name: str
+    entity_type: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ClientCreate(ClientBase):
+    cause_ids: Optional[List[UUID]] = []
+    applicant_type_ids: Optional[List[UUID]] = []
+    province_ids: Optional[List[UUID]] = []
+    eligibility_flag_ids: Optional[List[UUID]] = []
+
+
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    entity_type: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ClientEligibility(BaseModel):
+    cause_ids: List[UUID] = []
+    applicant_type_ids: List[UUID] = []
+    province_ids: List[UUID] = []
+    eligibility_flag_ids: List[UUID] = []
+
+
+class ClientResponse(ClientBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    causes: List[CauseResponse] = []
+    applicant_types: List[ApplicantTypeResponse] = []
+    provinces: List[ProvinceResponse] = []
+    eligibility_flags: List[EligibilityFlagResponse] = []
+
+    class Config:
+        from_attributes = True
