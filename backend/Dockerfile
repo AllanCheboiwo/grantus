@@ -16,14 +16,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Make entrypoint executable
-RUN chmod +x entrypoint.sh
+# Make entrypoint executable (before switching user)
+RUN chmod +x /app/entrypoint.sh
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+# Create non-root user and set ownership
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
 
-# Use entrypoint script
-ENTRYPOINT ["./entrypoint.sh"]
+# Use bash to run entrypoint script
+ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
