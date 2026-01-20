@@ -104,12 +104,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-sm text-gray-500 text-center">
-              Default admin: <code className="bg-gray-100 px-1.5 py-0.5 rounded">admin@grantus.ca</code> / <code className="bg-gray-100 px-1.5 py-0.5 rounded">admin123</code>
-            </p>
-          </div>
         </div>
       </div>
     </div>
