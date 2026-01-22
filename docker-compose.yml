@@ -28,6 +28,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-grantus}
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     ports:
       - "8000:8000"
     depends_on:
