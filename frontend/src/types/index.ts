@@ -113,6 +113,15 @@ export interface ClientCreate {
   eligibility_flag_ids?: string[];
 }
 
+export interface ClientUser {
+  user_id: string;
+  client_id: string;
+  client_role: string | null;
+  email: string;
+  name: string | null;
+  is_active: boolean;
+}
+
 // Match types
 export type MatchStatus = 'new' | 'qualified' | 'rejected' | 'converted';
 

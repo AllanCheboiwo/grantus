@@ -10,14 +10,19 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
-const navigation = [
+const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Grants', href: '/grants', icon: DocumentTextIcon },
   { name: 'Clients', href: '/clients', icon: UserGroupIcon },
   { name: 'Applications', href: '/applications', icon: ClipboardDocumentListIcon },
+];
+
+const adminNavigation = [
+  { name: 'Users', href: '/users', icon: UsersIcon, adminOnly: true },
 ];
 
 export default function Layout() {
@@ -71,7 +76,7 @@ export default function Layout() {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => (
+            {baseNavigation.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.href}
@@ -89,6 +94,35 @@ export default function Layout() {
                 {item.name}
               </NavLink>
             ))}
+            
+            {/* Admin-only navigation */}
+            {user?.role === 'admin' && (
+              <>
+                <div className="pt-4 pb-2">
+                  <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Admin
+                  </p>
+                </div>
+                {adminNavigation.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      clsx(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      )
+                    }
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.name}
+                  </NavLink>
+                ))}
+              </>
+            )}
           </nav>
 
           {/* User section */}

@@ -11,6 +11,7 @@ import ClientDetail from './pages/ClientDetail';
 import ClientForm from './pages/ClientForm';
 import Applications from './pages/Applications';
 import ApplicationDetail from './pages/ApplicationDetail';
+import Users from './pages/Users';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -46,6 +47,7 @@ function App() {
         <Route path="clients/:id/edit" element={<ClientForm />} />
         <Route path="applications" element={<Applications />} />
         <Route path="applications/:id" element={<ApplicationDetail />} />
+        <Route path="users" element={<Users />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />

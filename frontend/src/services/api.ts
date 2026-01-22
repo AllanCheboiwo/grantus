@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { 
-  Token, User, Grant, GrantCreate, Client, ClientCreate, 
+  Token, User, Grant, GrantCreate, Client, ClientCreate, ClientUser,
   Match, MatchGenerate, Application, ApplicationCreate, ApplicationEvent,
   Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage
 } from '../types';
@@ -62,6 +62,21 @@ export const usersApi = {
   getAll: async (): Promise<User[]> => {
     const { data } = await api.get<User[]>('/users/');
     return data;
+  },
+  getById: async (id: string): Promise<User> => {
+    const { data } = await api.get<User>(`/users/${id}`);
+    return data;
+  },
+  create: async (userData: { email: string; password: string; name?: string; role?: 'admin' | 'staff' | 'client' }): Promise<User> => {
+    const { data } = await api.post<User>('/users/', userData);
+    return data;
+  },
+  update: async (id: string, userData: { email?: string; name?: string; role?: string; is_active?: boolean }): Promise<User> => {
+    const { data } = await api.patch<User>(`/users/${id}`, userData);
+    return data;
+  },
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}`);
   },
 };
 
@@ -141,6 +156,18 @@ export const clientsApi = {
   },
   delete: async (id: string): Promise<void> => {
     await api.delete(`/clients/${id}`);
+  },
+  // Client Users
+  getUsers: async (clientId: string): Promise<ClientUser[]> => {
+    const { data } = await api.get<ClientUser[]>(`/clients/${clientId}/users`);
+    return data;
+  },
+  createUser: async (clientId: string, userData: { email: string; name?: string; password: string; client_role?: string }): Promise<ClientUser> => {
+    const { data } = await api.post<ClientUser>(`/clients/${clientId}/users`, userData);
+    return data;
+  },
+  removeUser: async (clientId: string, userId: string): Promise<void> => {
+    await api.delete(`/clients/${clientId}/users/${userId}`);
   },
 };
 
