@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
+import PortalLayout from './components/PortalLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Grants from './pages/Grants';
@@ -12,6 +13,9 @@ import ClientForm from './pages/ClientForm';
 import Applications from './pages/Applications';
 import ApplicationDetail from './pages/ApplicationDetail';
 import Users from './pages/Users';
+import PortalDashboard from './pages/portal/PortalDashboard';
+import PortalApplications from './pages/portal/PortalApplications';
+import PortalApplicationDetail from './pages/portal/PortalApplicationDetail';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -23,17 +27,50 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function StaffRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect client users to portal
+  if (user?.role === 'client') {
+    return <Navigate to="/portal" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+function ClientRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect staff/admin users to main app
+  if (user?.role !== 'client') {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
 function App() {
+  const { user, isAuthenticated } = useAuthStore();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       
+      {/* Staff/Admin Routes */}
       <Route
         path="/"
         element={
-          <ProtectedRoute>
+          <StaffRoute>
             <Layout />
-          </ProtectedRoute>
+          </StaffRoute>
         }
       >
         <Route index element={<Dashboard />} />
@@ -50,7 +87,29 @@ function App() {
         <Route path="users" element={<Users />} />
       </Route>
       
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Client Portal Routes */}
+      <Route
+        path="/portal"
+        element={
+          <ClientRoute>
+            <PortalLayout />
+          </ClientRoute>
+        }
+      >
+        <Route index element={<PortalDashboard />} />
+        <Route path="applications" element={<PortalApplications />} />
+        <Route path="applications/:id" element={<PortalApplicationDetail />} />
+      </Route>
+      
+      {/* Catch-all redirect */}
+      <Route 
+        path="*" 
+        element={
+          isAuthenticated 
+            ? <Navigate to={user?.role === 'client' ? '/portal' : '/'} replace />
+            : <Navigate to="/login" replace />
+        } 
+      />
     </Routes>
   );
 }

@@ -236,4 +236,24 @@ export const applicationsApi = {
   },
 };
 
+// Portal API (for client users)
+export const portalApi = {
+  getMyClient: async (): Promise<Client> => {
+    const { data } = await api.get<Client>('/portal/my-client');
+    return data;
+  },
+  getMyApplications: async (): Promise<Application[]> => {
+    const { data } = await api.get<Application[]>('/portal/applications');
+    return data;
+  },
+  getApplication: async (id: string): Promise<Application> => {
+    const { data } = await api.get<Application>(`/portal/applications/${id}`);
+    return data;
+  },
+  getApplicationEvents: async (id: string): Promise<ApplicationEvent[]> => {
+    const { data } = await api.get<ApplicationEvent[]>(`/portal/applications/${id}/events`);
+    return data;
+  },
+};
+
 export default api;
