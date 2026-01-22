@@ -490,6 +490,7 @@ function CreateClientUserModal({
     email: '',
     name: '',
     password: '',
+    confirmPassword: '',
     client_role: 'viewer',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -498,6 +499,14 @@ function CreateClientUserModal({
     e.preventDefault();
     if (!formData.email || !formData.password) {
       toast.error('Email and password are required');
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
@@ -560,6 +569,22 @@ function CreateClientUserModal({
             <p className="text-xs text-gray-500 mt-1">
               This will be visible so you can share it with the client.
             </p>
+          </div>
+
+          <div>
+            <label className="label">Confirm Password *</label>
+            <input
+              type="text"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              className={`input ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500' : ''}`}
+              placeholder="Re-type password"
+              required
+              minLength={6}
+            />
+            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+            )}
           </div>
 
           <div>

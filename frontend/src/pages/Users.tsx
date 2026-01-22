@@ -160,6 +160,7 @@ function CreateUserModal({
     email: '',
     name: '',
     password: '',
+    confirmPassword: '',
     role: 'staff' as 'admin' | 'staff',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,6 +169,14 @@ function CreateUserModal({
     e.preventDefault();
     if (!formData.email || !formData.password) {
       toast.error('Email and password are required');
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
@@ -224,6 +233,22 @@ function CreateUserModal({
               required
               minLength={6}
             />
+          </div>
+
+          <div>
+            <label className="label">Confirm Password *</label>
+            <input
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              className={`input ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500' : ''}`}
+              placeholder="••••••••"
+              required
+              minLength={6}
+            />
+            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+            )}
           </div>
 
           <div>
