@@ -42,3 +42,23 @@ class ClientResponse(ClientBase):
 
     class Config:
         from_attributes = True
+
+
+# Client User schemas
+class ClientUserCreate(BaseModel):
+    email: str
+    name: Optional[str] = None
+    password: str
+    client_role: Optional[str] = "viewer"  # owner, viewer
+
+
+class ClientUserResponse(BaseModel):
+    user_id: UUID
+    client_id: UUID
+    client_role: Optional[str]
+    email: str
+    name: Optional[str]
+    is_active: bool
+
+    class Config:
+        from_attributes = True

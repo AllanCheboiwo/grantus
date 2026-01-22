@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { clientsApi, matchesApi, applicationsApi } from '../services/api';
-import type { Client, Match, MatchGenerate, Application } from '../types';
+import type { Client, Match, MatchGenerate, Application, ClientUser } from '../types';
 import {
   PencilIcon,
   TrashIcon,
   ArrowLeftIcon,
   SparklesIcon,
   PlusIcon,
+  UserPlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -19,8 +21,10 @@ export default function ClientDetail() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [generatedMatches, setGeneratedMatches] = useState<MatchGenerate[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [clientUsers, setClientUsers] = useState<ClientUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
   useEffect(() => {
     if (id) loadData();
@@ -28,19 +32,32 @@ export default function ClientDetail() {
 
   const loadData = async () => {
     try {
-      const [clientData, matchesData, appsData] = await Promise.all([
+      const [clientData, matchesData, appsData, usersData] = await Promise.all([
         clientsApi.getById(id!),
         matchesApi.getAll({ client_id: id }),
         applicationsApi.getAll({ client_id: id }),
+        clientsApi.getUsers(id!),
       ]);
       setClient(clientData);
       setMatches(matchesData);
       setApplications(appsData);
+      setClientUsers(usersData);
     } catch (error) {
       toast.error('Failed to load client');
       navigate('/clients');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    if (!client || !confirm('Remove this user from the client?')) return;
+    try {
+      await clientsApi.removeUser(client.id, userId);
+      toast.success('User removed');
+      setClientUsers((prev) => prev.filter((u) => u.user_id !== userId));
+    } catch (error) {
+      toast.error('Failed to remove user');
     }
   };
 
@@ -362,8 +379,67 @@ export default function ClientDetail() {
               <p className="text-sm text-gray-600 whitespace-pre-wrap">{client.notes}</p>
             </div>
           )}
+
+          {/* Client Portal Users */}
+          <div className="card">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Portal Users</h2>
+              <button
+                onClick={() => setShowCreateUserModal(true)}
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+              >
+                <UserPlusIcon className="w-4 h-4" />
+                Add
+              </button>
+            </div>
+            <div className="p-4">
+              {clientUsers.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No portal users yet. Add a user to give them access.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {clientUsers.map((cu) => (
+                    <div
+                      key={cu.user_id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {cu.name || cu.email}
+                        </p>
+                        <p className="text-xs text-gray-500">{cu.email}</p>
+                        {cu.client_role && (
+                          <span className="text-xs text-gray-400">{cu.client_role}</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleRemoveUser(cu.user_id)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                        title="Remove user"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Create Client User Modal */}
+      {showCreateUserModal && client && (
+        <CreateClientUserModal
+          clientId={client.id}
+          onClose={() => setShowCreateUserModal(false)}
+          onSuccess={(newUser) => {
+            setShowCreateUserModal(false);
+            setClientUsers((prev) => [...prev, newUser]);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -398,5 +474,141 @@ function StageBadge({ stage }: { stage: string }) {
     <span className={styles[stage] || 'badge-gray'}>
       {stage.replace('_', ' ')}
     </span>
+  );
+}
+
+function CreateClientUserModal({
+  clientId,
+  onClose,
+  onSuccess,
+}: {
+  clientId: string;
+  onClose: () => void;
+  onSuccess: (user: ClientUser) => void;
+}) {
+  const [formData, setFormData] = useState({
+    email: '',
+    name: '',
+    password: '',
+    confirmPassword: '',
+    client_role: 'viewer',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast.error('Email and password are required');
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const newUser = await clientsApi.createUser(clientId, formData);
+      toast.success('Client user created! Share these credentials with them.');
+      onSuccess(newUser);
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to create user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gray-900/50" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Create Portal User</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Create login credentials for a client contact. You'll need to share these with them.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="label">Email *</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="input"
+              placeholder="client@example.com"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="label">Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="input"
+              placeholder="Contact name"
+            />
+          </div>
+
+          <div>
+            <label className="label">Password *</label>
+            <input
+              type="text"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="input"
+              placeholder="Temporary password"
+              required
+              minLength={6}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              This will be visible so you can share it with the client.
+            </p>
+          </div>
+
+          <div>
+            <label className="label">Confirm Password *</label>
+            <input
+              type="text"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              className={`input ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500' : ''}`}
+              placeholder="Re-type password"
+              required
+              minLength={6}
+            />
+            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+            )}
+          </div>
+
+          <div>
+            <label className="label">Role</label>
+            <select
+              value={formData.client_role}
+              onChange={(e) => setFormData({ ...formData, client_role: e.target.value })}
+              className="input"
+            >
+              <option value="viewer">Viewer (read-only)</option>
+              <option value="owner">Owner (full access)</option>
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" onClick={onClose} className="btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn-primary">
+              {isSubmitting ? 'Creating...' : 'Create User'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

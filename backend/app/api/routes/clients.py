@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from uuid import UUID
 from app.core.database import get_db
-from app.core.security import get_current_user, get_current_staff_user
-from app.models.user import User
-from app.models.client import Client
+from app.core.security import get_current_user, get_current_staff_user, get_password_hash
+from app.models.user import User, UserRole
+from app.models.client import Client, ClientUser
 from app.models.lookup import Cause, ApplicantType, Province, EligibilityFlag
-from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse, ClientEligibility
+from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse, ClientEligibility, ClientUserCreate, ClientUserResponse
 from app.schemas.message import MessageResponse
 from app.models.message import Message
 
@@ -159,3 +159,113 @@ async def get_client_messages(
     ).order_by(Message.sent_at.desc()).offset(skip).limit(limit).all()
     
     return messages
+
+
+# Client User Management
+@router.get("/{client_id}/users", response_model=List[ClientUserResponse])
+async def get_client_users(
+    client_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_staff_user)
+):
+    """Get all users linked to a client"""
+    client = db.query(Client).filter(Client.id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_users = db.query(ClientUser).filter(ClientUser.client_id == client_id).all()
+    
+    result = []
+    for cu in client_users:
+        user = db.query(User).filter(User.id == cu.user_id).first()
+        if user:
+            result.append({
+                "user_id": user.id,
+                "client_id": cu.client_id,
+                "client_role": cu.client_role,
+                "email": user.email,
+                "name": user.name,
+                "is_active": user.is_active
+            })
+    
+    return result
+
+
+@router.post("/{client_id}/users", response_model=ClientUserResponse)
+async def create_client_user(
+    client_id: UUID,
+    user_data: ClientUserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_staff_user)
+):
+    """Create a new user and link them to a client"""
+    client = db.query(Client).filter(Client.id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Check if email already exists
+    existing = db.query(User).filter(User.email == user_data.email).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Create the user with client role
+    user = User(
+        email=user_data.email,
+        name=user_data.name,
+        role=UserRole.client,
+        password_hash=get_password_hash(user_data.password)
+    )
+    db.add(user)
+    db.flush()  # Get the user ID
+    
+    # Link user to client
+    client_user = ClientUser(
+        client_id=client_id,
+        user_id=user.id,
+        client_role=user_data.client_role
+    )
+    db.add(client_user)
+    db.commit()
+    
+    return {
+        "user_id": user.id,
+        "client_id": client_id,
+        "client_role": client_user.client_role,
+        "email": user.email,
+        "name": user.name,
+        "is_active": user.is_active
+    }
+
+
+@router.delete("/{client_id}/users/{user_id}")
+async def remove_client_user(
+    client_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_staff_user)
+):
+    """Remove a user from a client (optionally delete the user)"""
+    client_user = db.query(ClientUser).filter(
+        ClientUser.client_id == client_id,
+        ClientUser.user_id == user_id
+    ).first()
+    
+    if not client_user:
+        raise HTTPException(status_code=404, detail="Client user not found")
+    
+    # Delete the link
+    db.delete(client_user)
+    
+    # Optionally delete the user if they have no other client links
+    user = db.query(User).filter(User.id == user_id).first()
+    other_links = db.query(ClientUser).filter(ClientUser.user_id == user_id).count()
+    
+    if other_links == 0 and user:
+        db.delete(user)
+    
+    db.commit()
+    
+    return {"message": "Client user removed"}
