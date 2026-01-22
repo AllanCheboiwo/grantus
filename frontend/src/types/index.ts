@@ -205,3 +205,24 @@ export interface Message {
   sent_at: string | null;
   created_at: string;
 }
+
+// Invite types
+export interface ClientInvite {
+  id: string;
+  email: string;
+  name: string | null;
+  client_id: string;
+  client_role: string | null;
+  token: string;
+  expires_at: string;
+  created_at: string;
+  is_expired: boolean;
+}
+
+export interface InviteInfo {
+  email: string;
+  name: string | null;
+  client_name: string;
+  is_expired: boolean;
+  is_valid: boolean;
+}

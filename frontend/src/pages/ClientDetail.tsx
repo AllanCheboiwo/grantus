@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { clientsApi, matchesApi, applicationsApi } from '../services/api';
-import type { Client, Match, MatchGenerate, Application, ClientUser } from '../types';
+import { clientsApi, matchesApi, applicationsApi, invitesApi } from '../services/api';
+import type { Client, Match, MatchGenerate, Application, ClientUser, ClientInvite } from '../types';
 import {
   PencilIcon,
   TrashIcon,
   ArrowLeftIcon,
   SparklesIcon,
   PlusIcon,
-  UserPlusIcon,
+  EnvelopeIcon,
   XMarkIcon,
+  ClipboardDocumentIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 
 export default function ClientDetail() {
@@ -22,9 +24,11 @@ export default function ClientDetail() {
   const [generatedMatches, setGeneratedMatches] = useState<MatchGenerate[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [clientUsers, setClientUsers] = useState<ClientUser[]>([]);
+  const [invites, setInvites] = useState<ClientInvite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showInviteLinkModal, setShowInviteLinkModal] = useState<ClientInvite | null>(null);
 
   useEffect(() => {
     if (id) loadData();
@@ -32,16 +36,18 @@ export default function ClientDetail() {
 
   const loadData = async () => {
     try {
-      const [clientData, matchesData, appsData, usersData] = await Promise.all([
+      const [clientData, matchesData, appsData, usersData, invitesData] = await Promise.all([
         clientsApi.getById(id!),
         matchesApi.getAll({ client_id: id }),
         applicationsApi.getAll({ client_id: id }),
         clientsApi.getUsers(id!),
+        invitesApi.getForClient(id!),
       ]);
       setClient(clientData);
       setMatches(matchesData);
       setApplications(appsData);
       setClientUsers(usersData);
+      setInvites(invitesData);
     } catch (error) {
       toast.error('Failed to load client');
       navigate('/clients');
@@ -59,6 +65,33 @@ export default function ClientDetail() {
     } catch (error) {
       toast.error('Failed to remove user');
     }
+  };
+
+  const handleResendInvite = async (inviteId: string) => {
+    try {
+      const updated = await invitesApi.resend(inviteId);
+      toast.success('Invite resent');
+      setInvites((prev) => prev.map((i) => (i.id === inviteId ? updated : i)));
+    } catch (error) {
+      toast.error('Failed to resend invite');
+    }
+  };
+
+  const handleCancelInvite = async (inviteId: string) => {
+    if (!confirm('Cancel this invite?')) return;
+    try {
+      await invitesApi.delete(inviteId);
+      toast.success('Invite cancelled');
+      setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+    } catch (error) {
+      toast.error('Failed to cancel invite');
+    }
+  };
+
+  const copyInviteLink = (invite: ClientInvite) => {
+    const link = `${window.location.origin}/accept-invite?token=${invite.token}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Invite link copied!');
   };
 
   const handleGenerateMatches = async () => {
@@ -385,59 +418,134 @@ export default function ClientDetail() {
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Portal Users</h2>
               <button
-                onClick={() => setShowCreateUserModal(true)}
+                onClick={() => setShowInviteModal(true)}
                 className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
               >
-                <UserPlusIcon className="w-4 h-4" />
-                Add
+                <EnvelopeIcon className="w-4 h-4" />
+                Invite
               </button>
             </div>
-            <div className="p-4">
-              {clientUsers.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No portal users yet. Add a user to give them access.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {clientUsers.map((cu) => (
-                    <div
-                      key={cu.user_id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {cu.name || cu.email}
-                        </p>
-                        <p className="text-xs text-gray-500">{cu.email}</p>
-                        {cu.client_role && (
-                          <span className="text-xs text-gray-400">{cu.client_role}</span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleRemoveUser(cu.user_id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                        title="Remove user"
+            <div className="p-4 space-y-4">
+              {/* Active Users */}
+              {clientUsers.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase mb-2">Active Users</p>
+                  <div className="space-y-2">
+                    {clientUsers.map((cu) => (
+                      <div
+                        key={cu.user_id}
+                        className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100"
                       >
-                        <XMarkIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {cu.name || cu.email}
+                          </p>
+                          <p className="text-xs text-gray-500">{cu.email}</p>
+                          {cu.client_role && (
+                            <span className="text-xs text-green-600">{cu.client_role}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleRemoveUser(cu.user_id)}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                          title="Remove user"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Pending Invites */}
+              {invites.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase mb-2">Pending Invites</p>
+                  <div className="space-y-2">
+                    {invites.map((invite) => (
+                      <div
+                        key={invite.id}
+                        className={`p-3 rounded-lg border ${
+                          invite.is_expired
+                            ? 'bg-red-50 border-red-100'
+                            : 'bg-amber-50 border-amber-100'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {invite.name || invite.email}
+                            </p>
+                            <p className="text-xs text-gray-500">{invite.email}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {invite.is_expired ? (
+                                <span className="text-red-600">Expired</span>
+                              ) : (
+                                <>Invited {formatDistanceToNow(new Date(invite.created_at), { addSuffix: true })}</>
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => copyInviteLink(invite)}
+                              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded"
+                              title="Copy invite link"
+                            >
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleResendInvite(invite.id)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-white rounded"
+                              title="Resend invite"
+                            >
+                              <ArrowPathIcon className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleCancelInvite(invite.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded"
+                              title="Cancel invite"
+                            >
+                              <XMarkIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {clientUsers.length === 0 && invites.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No portal users yet. Invite someone to give them access.
+                </p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Create Client User Modal */}
-      {showCreateUserModal && client && (
-        <CreateClientUserModal
+      {/* Invite Modal */}
+      {showInviteModal && client && (
+        <InviteUserModal
           clientId={client.id}
-          onClose={() => setShowCreateUserModal(false)}
-          onSuccess={(newUser) => {
-            setShowCreateUserModal(false);
-            setClientUsers((prev) => [...prev, newUser]);
+          clientName={client.name}
+          onClose={() => setShowInviteModal(false)}
+          onSuccess={(newInvite) => {
+            setShowInviteModal(false);
+            setInvites((prev) => [newInvite, ...prev]);
+            setShowInviteLinkModal(newInvite);
           }}
+        />
+      )}
+
+      {/* Invite Link Modal */}
+      {showInviteLinkModal && (
+        <InviteLinkModal
+          invite={showInviteLinkModal}
+          onClose={() => setShowInviteLinkModal(null)}
         />
       )}
     </div>
@@ -477,46 +585,38 @@ function StageBadge({ stage }: { stage: string }) {
   );
 }
 
-function CreateClientUserModal({
+function InviteUserModal({
   clientId,
+  clientName,
   onClose,
   onSuccess,
 }: {
   clientId: string;
+  clientName: string;
   onClose: () => void;
-  onSuccess: (user: ClientUser) => void;
+  onSuccess: (invite: ClientInvite) => void;
 }) {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    password: '',
-    confirmPassword: '',
     client_role: 'viewer',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      toast.error('Email and password are required');
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (!formData.email) {
+      toast.error('Email is required');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const newUser = await clientsApi.createUser(clientId, formData);
-      toast.success('Client user created! Share these credentials with them.');
-      onSuccess(newUser);
+      const newInvite = await invitesApi.create(clientId, formData);
+      toast.success('Invite sent!');
+      onSuccess(newInvite);
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Failed to create user');
+      toast.error(error.response?.data?.detail || 'Failed to send invite');
     } finally {
       setIsSubmitting(false);
     }
@@ -526,9 +626,9 @@ function CreateClientUserModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-900/50" onClick={onClose} />
       <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Create Portal User</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Invite Portal User</h2>
         <p className="text-sm text-gray-500 mb-6">
-          Create login credentials for a client contact. You'll need to share these with them.
+          Send an invite to give someone access to <strong>{clientName}</strong>'s portal.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -551,40 +651,8 @@ function CreateClientUserModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="input"
-              placeholder="Contact name"
+              placeholder="Contact name (optional)"
             />
-          </div>
-
-          <div>
-            <label className="label">Password *</label>
-            <input
-              type="text"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="input"
-              placeholder="Temporary password"
-              required
-              minLength={6}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              This will be visible so you can share it with the client.
-            </p>
-          </div>
-
-          <div>
-            <label className="label">Confirm Password *</label>
-            <input
-              type="text"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className={`input ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500' : ''}`}
-              placeholder="Re-type password"
-              required
-              minLength={6}
-            />
-            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
-            )}
           </div>
 
           <div>
@@ -599,15 +667,78 @@ function CreateClientUserModal({
             </select>
           </div>
 
+          <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
+            <p>The user will receive an email with a link to set their password.</p>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" onClick={onClose} className="btn-secondary">
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="btn-primary">
-              {isSubmitting ? 'Creating...' : 'Create User'}
+              <EnvelopeIcon className="w-4 h-4 mr-2" />
+              {isSubmitting ? 'Sending...' : 'Send Invite'}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function InviteLinkModal({
+  invite,
+  onClose,
+}: {
+  invite: ClientInvite;
+  onClose: () => void;
+}) {
+  const inviteLink = `${window.location.origin}/accept-invite?token=${invite.token}`;
+  
+  const copyLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    toast.success('Link copied!');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gray-900/50" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <EnvelopeIcon className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">Invite Sent!</h2>
+          <p className="text-sm text-gray-500 mt-2">
+            An invitation has been sent to <strong>{invite.email}</strong>
+          </p>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <p className="text-xs text-gray-500 mb-2">Or share this link directly:</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={inviteLink}
+              readOnly
+              className="input text-sm flex-1"
+            />
+            <button onClick={copyLink} className="btn-primary shrink-0">
+              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 text-center mb-4">
+          This invite expires in 7 days.
+        </p>
+
+        <div className="flex justify-center">
+          <button onClick={onClose} className="btn-secondary">
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );

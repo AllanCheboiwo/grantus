@@ -16,6 +16,7 @@ import Users from './pages/Users';
 import PortalDashboard from './pages/portal/PortalDashboard';
 import PortalApplications from './pages/portal/PortalApplications';
 import PortalApplicationDetail from './pages/portal/PortalApplicationDetail';
+import AcceptInvite from './pages/AcceptInvite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -62,7 +63,9 @@ function App() {
 
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
       
       {/* Staff/Admin Routes */}
       <Route
