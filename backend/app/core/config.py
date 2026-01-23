@@ -24,12 +24,12 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
     
-    # Email
-    SMTP_HOST: str = ""
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = "noreply@grantus.ca"
+    # Email (Resend)
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "Grantus <noreply@allancheboiwo.com>"
+    
+    # Frontend URL (for invite links)
+    FRONTEND_URL: str = "http://localhost:5173"
     
     class Config:
         env_file = ".env"

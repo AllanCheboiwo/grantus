@@ -2,7 +2,8 @@ import axios from 'axios';
 import type { 
   Token, User, Grant, GrantCreate, Client, ClientCreate, ClientUser,
   Match, MatchGenerate, Application, ApplicationCreate, ApplicationEvent,
-  Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage
+  Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage,
+  ClientInvite, InviteInfo
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -252,6 +253,34 @@ export const portalApi = {
   },
   getApplicationEvents: async (id: string): Promise<ApplicationEvent[]> => {
     const { data } = await api.get<ApplicationEvent[]>(`/portal/applications/${id}/events`);
+    return data;
+  },
+};
+
+// Invites API
+export const invitesApi = {
+  getForClient: async (clientId: string): Promise<ClientInvite[]> => {
+    const { data } = await api.get<ClientInvite[]>(`/invites/client/${clientId}`);
+    return data;
+  },
+  create: async (clientId: string, invite: { email: string; name?: string; client_role?: string }): Promise<ClientInvite> => {
+    const { data } = await api.post<ClientInvite>(`/invites/client/${clientId}`, invite);
+    return data;
+  },
+  resend: async (inviteId: string): Promise<ClientInvite> => {
+    const { data } = await api.post<ClientInvite>(`/invites/${inviteId}/resend`);
+    return data;
+  },
+  delete: async (inviteId: string): Promise<void> => {
+    await api.delete(`/invites/${inviteId}`);
+  },
+  // Public endpoints (no auth)
+  verify: async (token: string): Promise<InviteInfo> => {
+    const { data } = await api.get<InviteInfo>(`/invites/verify/${token}`);
+    return data;
+  },
+  accept: async (token: string, password: string): Promise<{ message: string; email: string }> => {
+    const { data } = await api.post<{ message: string; email: string }>('/invites/accept', { token, password });
     return data;
   },
 };
