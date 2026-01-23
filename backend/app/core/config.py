@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     
     # Email (Resend)
     RESEND_API_KEY: str = ""
-    EMAIL_FROM: str = "Grantus <noreply@grantus.ca>"
+    EMAIL_FROM: str = "Grantus <noreply@allancheboiwo.com>"
     
     # Frontend URL (for invite links)
     FRONTEND_URL: str = "http://localhost:5173"

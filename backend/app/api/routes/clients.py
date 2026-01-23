@@ -256,14 +256,16 @@ async def remove_client_user(
     if not client_user:
         raise HTTPException(status_code=404, detail="Client user not found")
     
-    # Delete the link
-    db.delete(client_user)
     
-    # Optionally delete the user if they have no other client links
     user = db.query(User).filter(User.id == user_id).first()
+    
+    db.delete(client_user)
+    db.flush()  
+    
+    
     other_links = db.query(ClientUser).filter(ClientUser.user_id == user_id).count()
     
-    if other_links == 0 and user:
+    if other_links == 0 and user and user.role.value == 'client':
         db.delete(user)
     
     db.commit()
