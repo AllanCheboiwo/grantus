@@ -1,7 +1,7 @@
 """Add client invites table
 
 Revision ID: 002
-Revises: 001_initial_schema
+Revises: 001
 Create Date: 2026-01-22
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 # revision identifiers
 revision = '002'
-down_revision = '001_initial_schema'
+down_revision = '001'
 branch_labels = None
 depends_on = None
 
