@@ -19,7 +19,10 @@ import PortalApplicationDetail from './pages/portal/PortalApplicationDetail';
 import PortalSubscription from './pages/portal/PortalSubscription';
 import PortalGrants from './pages/portal/PortalGrants';
 import PortalGrantDetail from './pages/portal/PortalGrantDetail';
+import PortalSavedGrants from './pages/portal/PortalSavedGrants';
+import PortalProfile from './pages/portal/PortalProfile';
 import AcceptInvite from './pages/AcceptInvite';
+import Signup from './pages/Signup';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -68,6 +71,7 @@ function App() {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
       
       {/* Staff/Admin Routes */}
@@ -108,6 +112,8 @@ function App() {
         <Route path="subscription" element={<PortalSubscription />} />
         <Route path="grants" element={<PortalGrants />} />
         <Route path="grants/:id" element={<PortalGrantDetail />} />
+        <Route path="saved" element={<PortalSavedGrants />} />
+        <Route path="profile" element={<PortalProfile />} />
       </Route>
       
       {/* Catch-all redirect */}

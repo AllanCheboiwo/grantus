@@ -90,10 +90,13 @@ export interface GrantCreate {
 }
 
 // Client types
+export type ClientType = 'managed' | 'self_service';
+
 export interface Client {
   id: string;
   name: string;
   entity_type: string | null;
+  client_type: ClientType;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -262,4 +265,42 @@ export interface CheckoutResponse {
 
 export interface BillingPortalResponse {
   portal_url: string;
+}
+
+// Saved Grant types
+export interface SavedGrant {
+  id: string;
+  client_id: string;
+  grant_id: string;
+  notes: string | null;
+  created_at: string;
+  grant?: Grant;
+}
+
+// Portal stats types
+export interface SelfServiceStats {
+  client_type: 'self_service';
+  saved_grants: number;
+  matching_grants: number;
+  new_this_week: number;
+  has_access: boolean;
+}
+
+export interface ManagedStats {
+  client_type: 'managed';
+  total_applications: number;
+  active: number;
+  pending_decision: number;
+  completed: number;
+}
+
+export type PortalStats = SelfServiceStats | ManagedStats;
+
+// Public signup
+export interface PublicSignupRequest {
+  email: string;
+  password: string;
+  name?: string;
+  organization_name: string;
+  entity_type?: string;
 }
