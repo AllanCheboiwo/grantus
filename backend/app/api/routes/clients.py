@@ -7,7 +7,7 @@ from app.core.security import get_current_user, get_current_staff_user, get_pass
 from app.models.user import User, UserRole
 from app.models.client import Client, ClientUser
 from app.models.lookup import Cause, ApplicantType, Province, EligibilityFlag
-from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse, ClientEligibility, ClientUserCreate, ClientUserResponse
+from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse, ClientEligibility, ClientUserCreate, ClientUserResponse, GrantAccessUpdate
 from app.schemas.message import MessageResponse
 from app.models.message import Message
 
@@ -118,6 +118,28 @@ async def update_client_eligibility(
     client.provinces = db.query(Province).filter(Province.id.in_(eligibility.province_ids)).all()
     client.eligibility_flags = db.query(EligibilityFlag).filter(EligibilityFlag.id.in_(eligibility.eligibility_flag_ids)).all()
     
+    db.commit()
+    db.refresh(client)
+    
+    return client
+
+
+@router.patch("/{client_id}/grant-access", response_model=ClientResponse)
+async def update_grant_access(
+    client_id: UUID,
+    access_data: GrantAccessUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_staff_user)
+):
+    """
+    Manually grant or revoke grant database access for a client.
+    This is a staff override - useful for demos, VIPs, or troubleshooting.
+    """
+    client = db.query(Client).filter(Client.id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client.grant_db_access = access_data.grant_db_access
     db.commit()
     db.refresh(client)
     

@@ -12,6 +12,9 @@ import {
   XMarkIcon,
   ClipboardDocumentIcon,
   ArrowPathIcon,
+  CreditCardIcon,
+  LockClosedIcon,
+  LockOpenIcon,
 } from '@heroicons/react/24/outline';
 import { format, formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -152,6 +155,21 @@ export default function ClientDetail() {
       navigate('/clients');
     } catch (error) {
       toast.error('Failed to delete client');
+    }
+  };
+
+  const handleToggleGrantAccess = async () => {
+    if (!client) return;
+    const newAccess = !client.grant_db_access;
+    const action = newAccess ? 'grant' : 'revoke';
+    if (!confirm(`Are you sure you want to ${action} grant database access for this client?`)) return;
+    
+    try {
+      const updated = await clientsApi.updateGrantAccess(client.id, newAccess);
+      setClient(updated);
+      toast.success(`Grant database access ${newAccess ? 'granted' : 'revoked'}`);
+    } catch (error) {
+      toast.error('Failed to update access');
     }
   };
 
@@ -403,6 +421,70 @@ export default function ClientDetail() {
                     to add criteria.
                   </p>
                 )}
+            </div>
+          </div>
+
+          {/* Grant Database Access */}
+          <div className="card">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <CreditCardIcon className="w-5 h-5" />
+                Grant Database Access
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                    client.grant_db_access 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {client.grant_db_access ? (
+                      <>
+                        <LockOpenIcon className="w-4 h-4" />
+                        Access Granted
+                      </>
+                    ) : (
+                      <>
+                        <LockClosedIcon className="w-4 h-4" />
+                        No Access
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {client.subscription_status && (
+                <div className="text-sm text-gray-500 mb-3">
+                  <p><span className="font-medium">Status:</span> {client.subscription_status}</p>
+                  {client.current_period_end && (
+                    <p><span className="font-medium">Renews:</span> {format(new Date(client.current_period_end), 'MMM d, yyyy')}</p>
+                  )}
+                </div>
+              )}
+
+              {!client.subscription_status && client.grant_db_access && (
+                <p className="text-sm text-amber-600 mb-3">
+                  Manual override active (no subscription)
+                </p>
+              )}
+
+              <button
+                onClick={handleToggleGrantAccess}
+                className={`w-full py-2 px-4 rounded-lg text-sm font-medium ${
+                  client.grant_db_access
+                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                    : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                }`}
+              >
+                {client.grant_db_access ? 'Revoke Access' : 'Grant Access'}
+              </button>
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                {client.grant_db_access 
+                  ? 'Client can browse grants in the portal' 
+                  : 'Client cannot access the grant database'}
+              </p>
             </div>
           </div>
 

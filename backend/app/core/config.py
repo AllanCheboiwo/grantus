@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     # Frontend URL (for invite links)
     FRONTEND_URL: str = "http://localhost:5173"
     
+    # Stripe (Payments)
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_MONTHLY: str = ""  # price_xxx from Stripe Dashboard
+    STRIPE_PRICE_ANNUAL: str = ""   # price_yyy from Stripe Dashboard
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

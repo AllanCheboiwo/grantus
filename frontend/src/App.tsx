@@ -16,6 +16,9 @@ import Users from './pages/Users';
 import PortalDashboard from './pages/portal/PortalDashboard';
 import PortalApplications from './pages/portal/PortalApplications';
 import PortalApplicationDetail from './pages/portal/PortalApplicationDetail';
+import PortalSubscription from './pages/portal/PortalSubscription';
+import PortalGrants from './pages/portal/PortalGrants';
+import PortalGrantDetail from './pages/portal/PortalGrantDetail';
 import AcceptInvite from './pages/AcceptInvite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -102,6 +105,9 @@ function App() {
         <Route index element={<PortalDashboard />} />
         <Route path="applications" element={<PortalApplications />} />
         <Route path="applications/:id" element={<PortalApplicationDetail />} />
+        <Route path="subscription" element={<PortalSubscription />} />
+        <Route path="grants" element={<PortalGrants />} />
+        <Route path="grants/:id" element={<PortalGrantDetail />} />
       </Route>
       
       {/* Catch-all redirect */}

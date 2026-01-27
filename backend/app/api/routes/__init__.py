@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import auth, users, grants, clients, matches, applications, lookups, portal, invites
+from app.api.routes import auth, users, grants, clients, matches, applications, lookups, portal, invites, subscriptions
 
 api_router = APIRouter()
 
@@ -12,3 +12,4 @@ api_router.include_router(applications.router, prefix="/applications", tags=["Ap
 api_router.include_router(lookups.router, prefix="/lookups", tags=["Lookups"])
 api_router.include_router(portal.router, prefix="/portal", tags=["Client Portal"])
 api_router.include_router(invites.router, prefix="/invites", tags=["Invites"])
+api_router.include_router(subscriptions.router, tags=["Subscriptions"])

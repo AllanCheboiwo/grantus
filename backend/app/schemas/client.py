@@ -39,9 +39,32 @@ class ClientResponse(ClientBase):
     applicant_types: List[ApplicantTypeResponse] = []
     provinces: List[ProvinceResponse] = []
     eligibility_flags: List[EligibilityFlagResponse] = []
+    # Subscription fields
+    stripe_customer_id: Optional[str] = None
+    subscription_id: Optional[str] = None
+    subscription_status: Optional[str] = None
+    subscription_price_id: Optional[str] = None
+    current_period_end: Optional[datetime] = None
+    grant_db_access: bool = False
 
     class Config:
         from_attributes = True
+
+
+class SubscriptionStatusResponse(BaseModel):
+    """Response for subscription status check"""
+    has_access: bool
+    status: Optional[str] = None
+    current_period_end: Optional[datetime] = None
+    is_manual_override: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class GrantAccessUpdate(BaseModel):
+    """Request to manually grant/revoke access"""
+    grant_db_access: bool
 
 
 # Client User schemas
