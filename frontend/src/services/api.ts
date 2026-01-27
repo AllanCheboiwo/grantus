@@ -3,7 +3,8 @@ import type {
   Token, User, Grant, GrantCreate, Client, ClientCreate, ClientUser,
   Match, MatchGenerate, Application, ApplicationCreate, ApplicationEvent,
   Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage,
-  ClientInvite, InviteInfo, SubscriptionStatus, Prices, CheckoutResponse, BillingPortalResponse
+  ClientInvite, InviteInfo, SubscriptionStatus, Prices, CheckoutResponse, BillingPortalResponse,
+  SavedGrant, PortalStats, PublicSignupRequest
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -50,6 +51,11 @@ export const authApi = {
   },
   register: async (userData: { email: string; password: string; name?: string }): Promise<User> => {
     const { data } = await api.post<User>('/auth/register', userData);
+    return data;
+  },
+  // Public signup for self-service users
+  signup: async (signupData: PublicSignupRequest): Promise<{ message: string; user_id: string; client_id: string }> => {
+    const { data } = await api.post('/auth/signup', signupData);
     return data;
   },
 };
@@ -271,6 +277,40 @@ export const portalApi = {
   },
   getMatchingGrants: async (): Promise<Grant[]> => {
     const { data } = await api.get<Grant[]>('/portal/grants/matches');
+    return data;
+  },
+  // Saved Grants
+  getSavedGrants: async (): Promise<SavedGrant[]> => {
+    const { data } = await api.get('/portal/saved-grants/with-details');
+    return data;
+  },
+  saveGrant: async (grantId: string, notes?: string): Promise<SavedGrant> => {
+    const { data } = await api.post<SavedGrant>('/portal/saved-grants', { grant_id: grantId, notes });
+    return data;
+  },
+  updateSavedGrant: async (savedId: string, notes: string): Promise<SavedGrant> => {
+    const { data } = await api.patch<SavedGrant>(`/portal/saved-grants/${savedId}`, { notes });
+    return data;
+  },
+  removeSavedGrant: async (savedId: string): Promise<void> => {
+    await api.delete(`/portal/saved-grants/${savedId}`);
+  },
+  removeSavedGrantByGrant: async (grantId: string): Promise<void> => {
+    await api.delete(`/portal/saved-grants/by-grant/${grantId}`);
+  },
+  // Profile
+  updateEligibility: async (eligibility: {
+    cause_ids: string[];
+    applicant_type_ids: string[];
+    province_ids: string[];
+    eligibility_flag_ids: string[];
+  }): Promise<Client> => {
+    const { data } = await api.patch<Client>('/portal/profile/eligibility', eligibility);
+    return data;
+  },
+  // Stats
+  getStats: async (): Promise<PortalStats> => {
+    const { data } = await api.get<PortalStats>('/portal/stats');
     return data;
   },
 };

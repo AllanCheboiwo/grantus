@@ -8,6 +8,7 @@ from app.schemas.lookup import CauseResponse, ApplicantTypeResponse, ProvinceRes
 class ClientBase(BaseModel):
     name: str
     entity_type: Optional[str] = None
+    client_type: Optional[str] = "managed"  # managed, self_service
     notes: Optional[str] = None
 
 
@@ -85,3 +86,39 @@ class ClientUserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Saved Grant schemas (for self-service users)
+class SavedGrantCreate(BaseModel):
+    grant_id: UUID
+    notes: Optional[str] = None
+
+
+class SavedGrantUpdate(BaseModel):
+    notes: Optional[str] = None
+
+
+class SavedGrantResponse(BaseModel):
+    id: UUID
+    client_id: UUID
+    grant_id: UUID
+    notes: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Public signup schema
+class PublicSignupRequest(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = None
+    organization_name: str
+    entity_type: Optional[str] = None
+
+
+class PublicSignupResponse(BaseModel):
+    message: str
+    user_id: UUID
+    client_id: UUID

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { subscriptionApi } from '../services/api';
-import type { SubscriptionStatus } from '../types';
+import { subscriptionApi, portalApi } from '../services/api';
+import type { SubscriptionStatus, Client } from '../types';
 import {
   HomeIcon,
   ClipboardDocumentListIcon,
@@ -13,32 +13,50 @@ import {
   CreditCardIcon,
   LockClosedIcon,
   SparklesIcon,
+  BookmarkIcon,
+  UserCircleIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
-const navigation = [
+// Navigation items for managed clients (invited by staff)
+const managedNavigation = [
   { name: 'Dashboard', href: '/portal', icon: HomeIcon },
   { name: 'Applications', href: '/portal/applications', icon: ClipboardDocumentListIcon },
   { name: 'Grant Database', href: '/portal/grants', icon: BuildingLibraryIcon, requiresSubscription: true },
   { name: 'Subscription', href: '/portal/subscription', icon: CreditCardIcon },
 ];
 
+// Navigation items for self-service users (public signup)
+const selfServiceNavigation = [
+  { name: 'Dashboard', href: '/portal', icon: HomeIcon },
+  { name: 'Grant Database', href: '/portal/grants', icon: BuildingLibraryIcon, requiresSubscription: true },
+  { name: 'Saved Grants', href: '/portal/saved', icon: BookmarkIcon },
+  { name: 'My Profile', href: '/portal/profile', icon: UserCircleIcon },
+  { name: 'Subscription', href: '/portal/subscription', icon: CreditCardIcon },
+];
+
 export default function PortalLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [client, setClient] = useState<Client | null>(null);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadSubscriptionStatus();
+    loadData();
   }, []);
 
-  const loadSubscriptionStatus = async () => {
+  const loadData = async () => {
     try {
-      const status = await subscriptionApi.getStatus();
+      const [status, clientData] = await Promise.all([
+        subscriptionApi.getStatus(),
+        portalApi.getMyClient(),
+      ]);
       setSubscriptionStatus(status);
+      setClient(clientData);
     } catch (error) {
-      // Silently fail - status will be null
+      // Silently fail
     }
   };
 
@@ -48,6 +66,8 @@ export default function PortalLayout() {
   };
 
   const hasAccess = subscriptionStatus?.has_access;
+  const isSelfService = client?.client_type === 'self_service';
+  const navigation = isSelfService ? selfServiceNavigation : managedNavigation;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">

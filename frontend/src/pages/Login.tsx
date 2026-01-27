@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
@@ -104,6 +104,16 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          {/* Signup Link */}
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p className="text-gray-600">
+              Looking for grants?{' '}
+              <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
