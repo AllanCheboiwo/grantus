@@ -3,7 +3,7 @@ import type {
   Token, User, Grant, GrantCreate, Client, ClientCreate, ClientUser,
   Match, MatchGenerate, Application, ApplicationCreate, ApplicationEvent,
   Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage,
-  ClientInvite, InviteInfo
+  ClientInvite, InviteInfo, SubscriptionStatus, Prices, CheckoutResponse, BillingPortalResponse
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -170,6 +170,11 @@ export const clientsApi = {
   removeUser: async (clientId: string, userId: string): Promise<void> => {
     await api.delete(`/clients/${clientId}/users/${userId}`);
   },
+  // Grant database access (staff override)
+  updateGrantAccess: async (clientId: string, grantAccess: boolean): Promise<Client> => {
+    const { data } = await api.patch<Client>(`/clients/${clientId}/grant-access`, { grant_db_access: grantAccess });
+    return data;
+  },
 };
 
 // Matches
@@ -253,6 +258,45 @@ export const portalApi = {
   },
   getApplicationEvents: async (id: string): Promise<ApplicationEvent[]> => {
     const { data } = await api.get<ApplicationEvent[]>(`/portal/applications/${id}/events`);
+    return data;
+  },
+  // Grant Database (requires subscription)
+  getGrants: async (params?: Record<string, string>): Promise<Grant[]> => {
+    const { data } = await api.get<Grant[]>('/portal/grants', { params });
+    return data;
+  },
+  getGrant: async (id: string): Promise<Grant> => {
+    const { data } = await api.get<Grant>(`/portal/grants/${id}`);
+    return data;
+  },
+  getMatchingGrants: async (): Promise<Grant[]> => {
+    const { data } = await api.get<Grant[]>('/portal/grants/matches');
+    return data;
+  },
+};
+
+// Subscription API
+export const subscriptionApi = {
+  getStatus: async (): Promise<SubscriptionStatus> => {
+    const { data } = await api.get<SubscriptionStatus>('/subscriptions/status');
+    return data;
+  },
+  getPrices: async (): Promise<Prices> => {
+    const { data } = await api.get<Prices>('/subscriptions/prices');
+    return data;
+  },
+  createCheckout: async (priceId: string, successUrl?: string, cancelUrl?: string): Promise<CheckoutResponse> => {
+    const { data } = await api.post<CheckoutResponse>('/subscriptions/checkout', {
+      price_id: priceId,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+    return data;
+  },
+  createBillingPortal: async (returnUrl?: string): Promise<BillingPortalResponse> => {
+    const { data } = await api.post<BillingPortalResponse>('/subscriptions/portal', {
+      return_url: returnUrl,
+    });
     return data;
   },
 };

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -17,6 +17,14 @@ class Client(Base):
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Subscription fields for grant database access
+    stripe_customer_id = Column(String, nullable=True)
+    subscription_id = Column(String, nullable=True)
+    subscription_status = Column(String, nullable=True)  # active, canceled, past_due
+    subscription_price_id = Column(String, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    grant_db_access = Column(Boolean, default=False)  # Manual override by staff
     
     # Relationships
     users = relationship("ClientUser", back_populates="client")

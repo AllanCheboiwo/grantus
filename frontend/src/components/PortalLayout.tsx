@@ -1,29 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { subscriptionApi } from '../services/api';
+import type { SubscriptionStatus } from '../types';
 import {
   HomeIcon,
   ClipboardDocumentListIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
+  BuildingLibraryIcon,
+  CreditCardIcon,
+  LockClosedIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Dashboard', href: '/portal', icon: HomeIcon },
   { name: 'Applications', href: '/portal/applications', icon: ClipboardDocumentListIcon },
+  { name: 'Grant Database', href: '/portal/grants', icon: BuildingLibraryIcon, requiresSubscription: true },
+  { name: 'Subscription', href: '/portal/subscription', icon: CreditCardIcon },
 ];
 
 export default function PortalLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadSubscriptionStatus();
+  }, []);
+
+  const loadSubscriptionStatus = async () => {
+    try {
+      const status = await subscriptionApi.getStatus();
+      setSubscriptionStatus(status);
+    } catch (error) {
+      // Silently fail - status will be null
+    }
+  };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const hasAccess = subscriptionStatus?.has_access;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -64,25 +88,34 @@ export default function PortalLayout() {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                end={item.href === '/portal'}
-                className={({ isActive }) =>
-                  clsx(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  )
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.name}
-              </NavLink>
-            ))}
+            {navigation.map((item) => {
+              const needsSubscription = item.requiresSubscription && !hasAccess;
+              return (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  end={item.href === '/portal'}
+                  className={({ isActive }) =>
+                    clsx(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    )
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="flex-1">{item.name}</span>
+                  {needsSubscription && (
+                    <LockClosedIcon className="w-4 h-4 text-gray-400" />
+                  )}
+                  {item.requiresSubscription && hasAccess && (
+                    <SparklesIcon className="w-4 h-4 text-amber-500" />
+                  )}
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* User section */}

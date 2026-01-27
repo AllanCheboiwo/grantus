@@ -101,6 +101,13 @@ export interface Client {
   applicant_types: ApplicantType[];
   provinces: Province[];
   eligibility_flags: EligibilityFlag[];
+  // Subscription fields
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_status: 'active' | 'canceled' | 'past_due' | 'trialing' | null;
+  subscription_price_id: string | null;
+  current_period_end: string | null;
+  grant_db_access: boolean;
 }
 
 export interface ClientCreate {
@@ -225,4 +232,34 @@ export interface InviteInfo {
   client_name: string;
   is_expired: boolean;
   is_valid: boolean;
+}
+
+// Subscription types
+export interface SubscriptionStatus {
+  has_access: boolean;
+  status: string | null;
+  current_period_end: string | null;
+  is_manual_override: boolean;
+  stripe_customer_id: string | null;
+}
+
+export interface PriceInfo {
+  price_id: string;
+  amount: number;
+  currency: string;
+  interval: string | null;
+}
+
+export interface Prices {
+  monthly: PriceInfo | null;
+  annual: PriceInfo | null;
+}
+
+export interface CheckoutResponse {
+  session_id: string;
+  checkout_url: string;
+}
+
+export interface BillingPortalResponse {
+  portal_url: string;
 }
