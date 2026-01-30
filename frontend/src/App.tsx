@@ -13,6 +13,7 @@ import ClientForm from './pages/ClientForm';
 import Applications from './pages/Applications';
 import ApplicationDetail from './pages/ApplicationDetail';
 import Users from './pages/Users';
+import ManagedServiceRequests from './pages/ManagedServiceRequests';
 import PortalDashboard from './pages/portal/PortalDashboard';
 import PortalApplications from './pages/portal/PortalApplications';
 import PortalApplicationDetail from './pages/portal/PortalApplicationDetail';
@@ -95,6 +96,7 @@ function App() {
         <Route path="applications" element={<Applications />} />
         <Route path="applications/:id" element={<ApplicationDetail />} />
         <Route path="users" element={<Users />} />
+        <Route path="expert-help-requests" element={<ManagedServiceRequests />} />
       </Route>
       
       {/* Client Portal Routes */}

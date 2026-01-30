@@ -6,10 +6,14 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, UserRole
 from app.models.client import Client, ClientUser, SavedGrant
+from app.models.managed_service_request import ManagedServiceRequest
 from app.models.application import Application, ApplicationEvent
 from app.models.grant import Grant, GrantStatus, DeadlineType
 from app.models.lookup import Cause, ApplicantType, Province, EligibilityFlag
-from app.schemas.client import ClientResponse, ClientEligibility, SavedGrantCreate, SavedGrantUpdate, SavedGrantResponse
+from app.schemas.client import (
+    ClientResponse, ClientEligibility, SavedGrantCreate, SavedGrantUpdate, SavedGrantResponse,
+    ManagedServiceRequestCreate, ManagedServiceRequestResponse,
+)
 from app.schemas.application import ApplicationResponse, ApplicationEventResponse
 from app.schemas.grant import GrantResponse
 
@@ -420,6 +424,52 @@ async def update_my_profile(
     db.refresh(client)
     
     return client
+
+
+# ==================== GET EXPERT HELP (Self-Service Only) ====================
+
+@router.post("/request-managed-service", response_model=ManagedServiceRequestResponse)
+async def request_managed_service(
+    data: ManagedServiceRequestCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Self-service user requests expert/managed help.
+    Creates a lead for staff to follow up.
+    """
+    client = get_client_for_user(current_user, db)
+    if client.client_type != "self_service":
+        raise HTTPException(
+            status_code=400,
+            detail="This form is for self-service users. Contact your account manager for help."
+        )
+
+    req = ManagedServiceRequest(
+        client_id=client.id,
+        message=data.message,
+        contact_phone=data.contact_phone,
+    )
+    db.add(req)
+    db.commit()
+    db.refresh(req)
+    return req
+
+
+@router.get("/request-managed-service/status")
+async def get_my_managed_service_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get my submitted requests (self-service only)"""
+    client = get_client_for_user(current_user, db)
+    if client.client_type != "self_service":
+        return []
+
+    requests = db.query(ManagedServiceRequest).filter(
+        ManagedServiceRequest.client_id == client.id
+    ).order_by(ManagedServiceRequest.created_at.desc()).all()
+    return [ManagedServiceRequestResponse.model_validate(r) for r in requests]
 
 
 # ==================== DASHBOARD STATS ====================

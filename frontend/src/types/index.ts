@@ -304,3 +304,19 @@ export interface PublicSignupRequest {
   organization_name: string;
   entity_type?: string;
 }
+
+// Managed service / expert help request
+export interface ManagedServiceRequest {
+  id: string;
+  client_id: string;
+  message: string;
+  contact_phone: string | null;
+  status: string;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface ManagedServiceRequestCreate {
+  message: string;
+  contact_phone?: string;
+}

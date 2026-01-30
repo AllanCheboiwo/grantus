@@ -62,7 +62,7 @@ export default function PortalSavedGrants() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function PortalSavedGrants() {
           </p>
           <Link
             to="/portal/grants"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
           >
             Browse Grants
           </Link>
@@ -103,7 +103,7 @@ export default function PortalSavedGrants() {
                 <div className="flex-1">
                   <Link
                     to={`/portal/grants/${saved.grant_id}`}
-                    className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                    className="text-lg font-semibold text-gray-900 hover:text-primary-600"
                   >
                     {saved.grant?.name || 'Unknown Grant'}
                   </Link>
@@ -136,14 +136,14 @@ export default function PortalSavedGrants() {
                       <textarea
                         value={editNotes}
                         onChange={(e) => setEditNotes(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                         rows={2}
                         placeholder="Add your notes..."
                       />
                       <div className="flex gap-2 mt-2">
                         <button
                           onClick={() => handleUpdateNotes(saved.id)}
-                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                          className="px-3 py-1 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
                         >
                           Save
                         </button>

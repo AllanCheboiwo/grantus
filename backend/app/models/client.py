@@ -33,7 +33,8 @@ class Client(Base):
     applications = relationship("Application", back_populates="client")
     messages = relationship("Message", back_populates="client")
     saved_grants = relationship("SavedGrant", back_populates="client", cascade="all, delete-orphan")
-    
+    managed_service_requests = relationship("ManagedServiceRequest", back_populates="client", cascade="all, delete-orphan")
+
     # Eligibility profile (many-to-many)
     causes = relationship("Cause", secondary=client_causes, lazy="selectin")
     applicant_types = relationship("ApplicantType", secondary=client_applicant_types, lazy="selectin")

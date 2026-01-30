@@ -11,6 +11,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   UsersIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
@@ -19,6 +20,7 @@ const baseNavigation = [
   { name: 'Grants', href: '/grants', icon: DocumentTextIcon },
   { name: 'Clients', href: '/clients', icon: UserGroupIcon },
   { name: 'Applications', href: '/applications', icon: ClipboardDocumentListIcon },
+  { name: 'Expert Help Requests', href: '/expert-help-requests', icon: ChatBubbleLeftRightIcon },
 ];
 
 const adminNavigation = [

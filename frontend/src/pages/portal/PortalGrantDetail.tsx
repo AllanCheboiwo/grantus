@@ -54,7 +54,7 @@ export default function PortalGrantDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -75,7 +75,7 @@ export default function PortalGrantDetail() {
           </p>
           <Link
             to="/portal/subscription"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
           >
             <SparklesIcon className="w-5 h-5" />
             View Subscription Plans
@@ -165,8 +165,8 @@ export default function PortalGrantDetail() {
           {/* Source URL */}
           {grant.source_url && (
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <GlobeAltIcon className="w-5 h-5 text-blue-600" />
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <GlobeAltIcon className="w-5 h-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">More Info</p>
@@ -174,7 +174,7 @@ export default function PortalGrantDetail() {
                   href={grant.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                  className="font-semibold text-primary-600 hover:text-primary-700 hover:underline"
                 >
                   Visit Website →
                 </a>
@@ -227,7 +227,7 @@ export default function PortalGrantDetail() {
                 {grant.applicant_types.map((type) => (
                   <span
                     key={type.id}
-                    className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                    className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm"
                   >
                     {type.name}
                   </span>

@@ -70,7 +70,7 @@ export default function PortalSubscription() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -146,7 +146,7 @@ export default function PortalSubscription() {
       {(!hasAccess || status?.status === 'canceled') && (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-white text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full text-white text-sm font-medium mb-4">
               <SparklesIcon className="w-4 h-4" />
               Unlock Self-Service
             </div>
@@ -190,9 +190,9 @@ export default function PortalSubscription() {
 
             {/* Annual */}
             {prices?.annual && (
-              <div className="bg-white border-2 border-blue-500 rounded-xl p-6 shadow-sm relative">
+              <div className="bg-white border-2 border-primary-500 rounded-xl p-6 shadow-sm relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                  <span className="bg-primary-500 text-white text-xs font-medium px-3 py-1 rounded-full">
                     Best Value
                   </span>
                 </div>
@@ -217,7 +217,7 @@ export default function PortalSubscription() {
                 <button
                   onClick={() => handleCheckout(prices.annual!.price_id)}
                   disabled={isCheckingOut !== null}
-                  className="mt-6 w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-6 w-full py-3 px-4 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCheckingOut === prices.annual.price_id ? 'Redirecting...' : 'Subscribe Annually'}
                 </button>

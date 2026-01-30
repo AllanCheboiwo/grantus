@@ -96,7 +96,7 @@ export default function PortalGrants() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function PortalGrants() {
           </p>
           <Link
             to="/portal/subscription"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700"
           >
             <SparklesIcon className="w-5 h-5" />
             View Subscription Plans
@@ -152,8 +152,8 @@ export default function PortalGrants() {
             onClick={() => setViewMode('matches')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               viewMode === 'matches'
-                ? 'bg-blue-600 text-white'
-                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                ? 'bg-primary-600 text-white'
+                : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
             }`}
           >
             <SparklesIcon className="w-4 h-4" />
@@ -174,21 +174,21 @@ export default function PortalGrants() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search grants..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-4 py-2 border rounded-lg font-medium text-sm ${
                 showFilters || causeId || provinceId || applicantTypeId
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <FunnelIcon className="w-4 h-4" />
               Filters
               {(causeId || provinceId || applicantTypeId) && (
-                <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white text-xs rounded-full">
+                <span className="ml-1 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded-full">
                   {[causeId, provinceId, applicantTypeId].filter(Boolean).length}
                 </span>
               )}
@@ -275,7 +275,7 @@ export default function PortalGrants() {
             <Link
               key={grant.id}
               to={`/portal/grants/${grant.id}`}
-              className="bg-white rounded-xl border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all"
+              className="bg-white rounded-xl border border-gray-200 p-6 hover:border-primary-300 hover:shadow-md transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-1">

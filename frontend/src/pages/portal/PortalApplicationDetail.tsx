@@ -40,7 +40,7 @@ export default function PortalApplicationDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function PortalApplicationDetail() {
                 {events.map((event, index) => (
                   <div key={event.id} className="flex gap-4">
                     <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 rounded-full bg-blue-500" />
+                      <div className="w-3 h-3 rounded-full bg-primary-500" />
                       {index < events.length - 1 && (
                         <div className="w-0.5 h-full bg-gray-200 my-1" />
                       )}
@@ -179,8 +179,8 @@ export default function PortalApplicationDetail() {
 
               {application.submitted_at && (
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <DocumentTextIcon className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-primary-50 rounded-lg">
+                    <DocumentTextIcon className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Submitted</p>
@@ -265,11 +265,11 @@ function StageProgress({ currentStage }: { currentStage: string }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   isComplete
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : isCurrent
                     ? isDeclined
                       ? 'bg-red-600 text-white'
-                      : 'bg-blue-600 text-white ring-4 ring-blue-100'
+                      : 'bg-primary-600 text-white ring-4 ring-primary-100'
                     : 'bg-gray-200 text-gray-500'
                 }`}
               >
@@ -286,7 +286,7 @@ function StageProgress({ currentStage }: { currentStage: string }) {
             {index < stages.length - 1 && (
               <div
                 className={`flex-1 h-1 mx-2 ${
-                  index < currentIndex ? 'bg-blue-600' : 'bg-gray-200'
+                  index < currentIndex ? 'bg-primary-600' : 'bg-gray-200'
                 }`}
               />
             )}
@@ -300,7 +300,7 @@ function StageProgress({ currentStage }: { currentStage: string }) {
 function StageBadge({ stage }: { stage: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
-    in_progress: 'bg-blue-100 text-blue-700',
+    in_progress: 'bg-primary-100 text-primary-700',
     submitted: 'bg-amber-100 text-amber-700',
     awarded: 'bg-green-100 text-green-700',
     declined: 'bg-red-100 text-red-700',

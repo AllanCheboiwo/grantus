@@ -84,7 +84,7 @@ export default function PortalProfile() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -102,8 +102,8 @@ export default function PortalProfile() {
       {/* Organization Info */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-blue-100 rounded-xl">
-            <BuildingLibraryIcon className="w-6 h-6 text-blue-600" />
+          <div className="p-3 bg-primary-100 rounded-xl">
+            <BuildingLibraryIcon className="w-6 h-6 text-primary-600" />
           </div>
           <div>
             <h2 className="font-semibold text-gray-900">{client?.name}</h2>
@@ -132,7 +132,7 @@ export default function PortalProfile() {
                 onClick={() => toggleItem(type.id, selectedTypes, setSelectedTypes)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   selectedTypes.includes(type.id)
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -221,7 +221,7 @@ export default function PortalProfile() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Profile'}
           </button>

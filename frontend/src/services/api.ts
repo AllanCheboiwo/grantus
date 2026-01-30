@@ -4,7 +4,8 @@ import type {
   Match, MatchGenerate, Application, ApplicationCreate, ApplicationEvent,
   Cause, ApplicantType, Province, EligibilityFlag, MatchStatus, ApplicationStage,
   ClientInvite, InviteInfo, SubscriptionStatus, Prices, CheckoutResponse, BillingPortalResponse,
-  SavedGrant, PortalStats, PublicSignupRequest
+  SavedGrant, PortalStats, PublicSignupRequest,
+  ManagedServiceRequest, ManagedServiceRequestCreate
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -313,6 +314,15 @@ export const portalApi = {
     const { data } = await api.get<PortalStats>('/portal/stats');
     return data;
   },
+  // Get Expert Help (self-service only)
+  requestManagedService: async (body: ManagedServiceRequestCreate): Promise<ManagedServiceRequest> => {
+    const { data } = await api.post<ManagedServiceRequest>('/portal/request-managed-service', body);
+    return data;
+  },
+  getMyManagedServiceRequests: async (): Promise<ManagedServiceRequest[]> => {
+    const { data } = await api.get<ManagedServiceRequest[]>('/portal/request-managed-service/status');
+    return data;
+  },
 };
 
 // Subscription API
@@ -365,6 +375,23 @@ export const invitesApi = {
   },
   accept: async (token: string, password: string): Promise<{ message: string; email: string }> => {
     const { data } = await api.post<{ message: string; email: string }>('/invites/accept', { token, password });
+    return data;
+  },
+};
+
+// Managed Service Requests (staff only)
+export const managedServiceRequestsApi = {
+  list: async (status?: string): Promise<ManagedServiceRequest[]> => {
+    const params = status ? { status } : {};
+    const { data } = await api.get<ManagedServiceRequest[]>('/managed-service-requests/', { params });
+    return data;
+  },
+  get: async (id: string): Promise<ManagedServiceRequest> => {
+    const { data } = await api.get<ManagedServiceRequest>(`/managed-service-requests/${id}`);
+    return data;
+  },
+  update: async (id: string, update: { status?: string; notes?: string }): Promise<ManagedServiceRequest> => {
+    const { data } = await api.patch<ManagedServiceRequest>(`/managed-service-requests/${id}`, update);
     return data;
   },
 };

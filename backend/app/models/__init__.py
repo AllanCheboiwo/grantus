@@ -9,6 +9,7 @@ from app.models.associations import (
 from app.models.match import Match
 from app.models.application import Application, ApplicationEvent
 from app.models.message import Message
+from app.models.managed_service_request import ManagedServiceRequest
 
 __all__ = [
     "User",
@@ -19,5 +20,6 @@ __all__ = [
     "client_causes", "client_applicant_types", "client_provinces", "client_eligibility_flags",
     "Match",
     "Application", "ApplicationEvent",
-    "Message"
+    "Message",
+    "ManagedServiceRequest",
 ]
