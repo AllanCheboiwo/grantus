@@ -36,7 +36,7 @@ export default function PortalApplications() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function PortalApplications() {
             onClick={() => setFilter(f.value)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === f.value
-                ? 'bg-blue-600 text-white'
+                ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -111,7 +111,7 @@ export default function PortalApplications() {
                       )}
                     </div>
                   </div>
-                  <div className="text-sm text-blue-600 font-medium">
+                  <div className="text-sm text-primary-600 font-medium">
                     View details →
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export default function PortalApplications() {
 function StageBadge({ stage }: { stage: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
-    in_progress: 'bg-blue-100 text-blue-700',
+    in_progress: 'bg-primary-100 text-primary-700',
     submitted: 'bg-amber-100 text-amber-700',
     awarded: 'bg-green-100 text-green-700',
     declined: 'bg-red-100 text-red-700',

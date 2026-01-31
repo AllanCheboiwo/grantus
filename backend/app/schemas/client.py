@@ -122,3 +122,22 @@ class PublicSignupResponse(BaseModel):
     message: str
     user_id: UUID
     client_id: UUID
+
+
+# Managed service request (self-service → expert help)
+class ManagedServiceRequestCreate(BaseModel):
+    message: str
+    contact_phone: Optional[str] = None
+
+
+class ManagedServiceRequestResponse(BaseModel):
+    id: UUID
+    client_id: UUID
+    message: str
+    contact_phone: Optional[str]
+    status: str
+    notes: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
